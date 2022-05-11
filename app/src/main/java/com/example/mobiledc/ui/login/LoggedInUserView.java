@@ -1,4 +1,4 @@
-package com.example.mobiledc.ui.login;
+package  com.example.mobiledc.ui.login;
 
 /**
  * Class exposing authenticated user details to the UI.

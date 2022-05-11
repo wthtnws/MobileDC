@@ -1,6 +1,7 @@
 package com.example.mobiledc.data;
 
 import com.example.mobiledc.data.model.LoggedInUser;
+import com.example.mobiledc.client.RequestClient;
 
 /**
  * Class that requests authentication and user information from the remote data source and
@@ -22,7 +23,7 @@ public class LoginRepository {
     }
 
     public static LoginRepository getInstance(LoginDataSource dataSource) {
-        if (instance == null) {
+        if(instance == null){
             instance = new LoginRepository(dataSource);
         }
         return instance;
