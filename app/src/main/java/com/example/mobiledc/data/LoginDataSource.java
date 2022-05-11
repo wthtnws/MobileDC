@@ -23,12 +23,11 @@ public class LoginDataSource {
         //сюда пихать GET/POST запросы на логин
         //+ понять как правильно ожидать ответа
 
-        String resp = client.postLogin1(username, password);
-        Log.i("[000] Response from postLogin1",resp);
+        client.postLogin1(username, password);
 
         String message = null;
         try {
-            JSONObject jsonObject = new JSONObject(resp);
+            JSONObject jsonObject = new JSONObject(message);
             message = jsonObject.getString("status");
             Log.i("[000] Response from json",message);
         }

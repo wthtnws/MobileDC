@@ -1,0 +1,15 @@
+<?xml version ="1.0" encoding ="utf-8"?><!--  Learn More about how to use App Actions: https://developer.android.com/guide/actions/index.html -->
+<network-security-config>
+    <base-config>
+        <trust-anchors>
+            <certificates src="@raw/cert"/>
+            <certificates src="system"/>
+        </trust-anchors>
+    </base-config>
+    <domain-config>
+        <domain includeSubdomains="true">https://192.168.1.105:8090</domain>
+        <trust-anchors>
+            <certificates src="@raw/cert"/>
+        </trust-anchors>
+    </domain-config>
+</network-security-config>

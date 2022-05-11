@@ -3,6 +3,8 @@ package  com.example.mobiledc.ui.login;
 import android.app.Activity;
 import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
+
+import android.content.Intent;
 import android.os.Bundle;
 import androidx.annotation.Nullable;
 import androidx.annotation.StringRes;
@@ -22,6 +24,7 @@ import com.example.mobiledc.R;
 import com.example.mobiledc.ui.login.LoginViewModel;
 import com.example.mobiledc.ui.login.LoginViewModelFactory;
 import com.example.mobiledc.databinding.ActivityLoginBinding;
+import com.example.mobiledc.ui.secondfactor.SecondFactorActivity;
 
 public class LoginActivity extends AppCompatActivity {
 
@@ -71,11 +74,14 @@ public class LoginActivity extends AppCompatActivity {
                 }
                 if (loginResult.getSuccess() != null) {
                     updateUiWithUser(loginResult.getSuccess());
+                    Intent secondFactor = new Intent(LoginActivity.this, SecondFactorActivity.class);
+                    secondFactor.putExtra("username",loginResult.getSuccess().getDisplayName());
+                    startActivity(secondFactor);
                 }
                 setResult(Activity.RESULT_OK);
 
                 //Complete and destroy login activity once successful
-                finish();
+                //finish();
             }
         });
 
