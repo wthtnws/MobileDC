@@ -21,8 +21,6 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.example.mobiledc.R;
-import com.example.mobiledc.ui.login.LoginViewModel;
-import com.example.mobiledc.ui.login.LoginViewModelFactory;
 import com.example.mobiledc.databinding.ActivityLoginBinding;
 import com.example.mobiledc.ui.secondfactor.SecondFactorActivity;
 
@@ -75,7 +73,7 @@ public class LoginActivity extends AppCompatActivity {
                 if (loginResult.getSuccess() != null) {
                     updateUiWithUser(loginResult.getSuccess());
                     Intent secondFactor = new Intent(LoginActivity.this, SecondFactorActivity.class);
-                    secondFactor.putExtra("username",loginResult.getSuccess().getDisplayName());
+                    secondFactor.putExtra("username",loginResult.getSuccess().getUsername());
                     startActivity(secondFactor);
                 }
                 setResult(Activity.RESULT_OK);
@@ -127,7 +125,7 @@ public class LoginActivity extends AppCompatActivity {
     }
 
     private void updateUiWithUser(LoggedInUserView model) {
-        String welcome = getString(R.string.welcome) + model.getDisplayName();
+        String welcome = getString(R.string.welcome) + model.getUsername();
         // TODO : initiate successful logged in experience
         Toast.makeText(getApplicationContext(), welcome, Toast.LENGTH_LONG).show();
     }

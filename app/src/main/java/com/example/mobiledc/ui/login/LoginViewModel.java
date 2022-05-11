@@ -64,7 +64,7 @@ public class LoginViewModel extends ViewModel {
                      String jsonStr = jsonObject.getString("status");
 
                      if (response.isSuccessful()){
-                         loginResult.postValue(new LoginResult(new LoggedInUserView(username)));
+                         loginResult.postValue(new LoginResult(new LoggedInUserView(username,null)));
                          Log.i("[+] Response status", jsonStr);
                      }
                      else

@@ -1,23 +1,25 @@
 package com.example.mobiledc.data.model;
 
+import androidx.annotation.Nullable;
+
 /**
  * Data class that captures user information for logged in users retrieved from LoginRepository
  */
 public class LoggedInUser {
 
-    private String userId;
-    private String displayName;
+    private String username;
+    private String apiToken;
 
-    public LoggedInUser(String userId, String displayName) {
-        this.userId = userId;
-        this.displayName = displayName;
+    public LoggedInUser(String username, @Nullable String apiToken) {
+        this.username = username;
+        this.username = apiToken;
     }
 
-    public String getUserId() {
-        return userId;
+    public String getUsername() {
+        return username;
     }
 
-    public String getDisplayName() {
-        return displayName;
+    private String getapiToken() {
+        return apiToken;
     }
 }

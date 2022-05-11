@@ -60,8 +60,8 @@ public class SecondFactorViewModel extends ViewModel {
                     String status = jsonObject.getString("status");
 
                     if (response.isSuccessful()){
-                        login2Result.postValue(new LoginResult(new LoggedInUserView(username)));
                         String apiToken = jsonObject.getString("apiToken");
+                        login2Result.postValue(new LoginResult(new LoggedInUserView(username,apiToken)));
                         Log.i("[+] Response2 status", status);
                         Log.i("[+] Response2 token", apiToken);
                     }

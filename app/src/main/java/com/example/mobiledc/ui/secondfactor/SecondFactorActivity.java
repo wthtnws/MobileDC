@@ -6,7 +6,6 @@ import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.view.KeyEvent;
-import android.view.LayoutInflater;
 import android.view.View;
 import android.view.inputmethod.EditorInfo;
 import android.widget.Button;
@@ -20,12 +19,11 @@ import androidx.annotation.StringRes;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.lifecycle.Observer;
 
-import com.example.mobiledc.R;
 import com.example.mobiledc.databinding.ActivitySecondfactorBinding;
 import com.example.mobiledc.ui.login.LoggedInUserView;
-import com.example.mobiledc.ui.login.LoginActivity;
 import com.example.mobiledc.ui.login.LoginFormState;
 import com.example.mobiledc.ui.login.LoginResult;
+import com.example.mobiledc.ui.menu.MenuActivity;
 
 public class SecondFactorActivity extends AppCompatActivity {
 
@@ -58,9 +56,10 @@ public class SecondFactorActivity extends AppCompatActivity {
                 }
                 if (login2Result.getSuccess() != null) {
                     updateUiWithUser(login2Result.getSuccess());
-//                    Intent secondFactor = new Intent(LoginActivity.this, SecondFactorActivity.class);
-//                    secondFactor.putExtra("username",login2Result.getSuccess().getDisplayName());
-//                    startActivity(secondFactor);
+                    Intent menu = new Intent(SecondFactorActivity.this, MenuActivity.class);
+                    menu.putExtra("username",login2Result.getSuccess().getUsername());
+                    menu.putExtra("apiToken", login2Result.getSuccess().getApiToken());
+                    startActivity(menu);
                 }
                 setResult(Activity.RESULT_OK);
 
@@ -123,7 +122,7 @@ public class SecondFactorActivity extends AppCompatActivity {
         });
     }
     private void updateUiWithUser(LoggedInUserView model) {
-        String welcome = "Authentication step 2 is successful! " + model.getDisplayName();
+        String welcome = "Authentication step 2 is successful! " + model.getUsername();
         // TODO : initiate successful logged in experience
         Toast.makeText(getApplicationContext(), welcome, Toast.LENGTH_LONG).show();
     }
