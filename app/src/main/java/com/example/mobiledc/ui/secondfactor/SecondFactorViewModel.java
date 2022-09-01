@@ -1,7 +1,6 @@
 package com.example.mobiledc.ui.secondfactor;
 
 import android.util.Log;
-import android.util.Patterns;
 
 import androidx.annotation.NonNull;
 import androidx.lifecycle.LiveData;
@@ -42,7 +41,7 @@ public class SecondFactorViewModel extends ViewModel {
     {
         OkHttpClient okHttpClient = new OkHttpClient().newBuilder().build();
         Requests.Login2 login2Request = new Requests.Login2(username, code);
-        okHttpClient.newCall(login2Request.getRequest()).enqueue(new Callback() {
+        okHttpClient.newCall(login2Request.postRequest()).enqueue(new Callback() {
             @Override
             public void onFailure(@NonNull Call call, @NonNull IOException e) {
                 login2Result.setValue(new LoginResult(R.string.login_failed));

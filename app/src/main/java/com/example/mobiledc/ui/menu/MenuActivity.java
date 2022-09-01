@@ -1,46 +1,90 @@
 package com.example.mobiledc.ui.menu;
 
+import android.app.Activity;
+import android.app.Fragment;
+import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
-import android.widget.EditText;
-import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.Nullable;
+import androidx.annotation.StringRes;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.lifecycle.Observer;
+import androidx.recyclerview.widget.LinearLayoutManager;
 
-import com.example.mobiledc.databinding.ActivityMenuBinding;
+import com.example.mobiledc.data.Result;
+import com.example.mobiledc.databinding.ActivityTaskmenuBinding;
+import com.example.mobiledc.ui.login.LoggedInUserView;
+import com.example.mobiledc.ui.login.LoginResult;
+import com.example.mobiledc.ui.secondfactor.SecondFactorActivity;
 
 public class MenuActivity extends AppCompatActivity {
 
-    private ActivityMenuBinding menuBinding;
+    private ActivityTaskmenuBinding taskmenuBinding;
+    private MenuViewModel menuViewModel;
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        menuBinding = ActivityMenuBinding.inflate(getLayoutInflater());
-        setContentView(menuBinding.getRoot());
+        taskmenuBinding = ActivityTaskmenuBinding.inflate(getLayoutInflater());
+        setContentView(taskmenuBinding.getRoot());
 
-        final TextView editText1 =  menuBinding.textView1;
-        final TextView editText2 =  menuBinding.textView2;
-        final Button menuButton = menuBinding.button;
-        final Button exitButton = menuBinding.button2;
+        menuViewModel = new MenuViewModel((String) getIntent().getSerializableExtra("apiToken"));
 
-        menuButton.setOnClickListener(new View.OnClickListener() {
+        final Button reload = taskmenuBinding.reloadtasks;
+        final Button logout = taskmenuBinding.logout;
+        final LinearLayoutManager layoutManager = new LinearLayoutManager(this);
+
+        reload.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                editText1.setText((String) getIntent().getSerializableExtra("username"));
-                editText2.setText((String) getIntent().getSerializableExtra("apiToken"));
+                Toast.makeText(MenuActivity.this, "Reload button was pressed", Toast.LENGTH_SHORT).show();
+                //menuViewModel.reloadTasks();
             }
         });
 
-        exitButton.setOnClickListener(new View.OnClickListener() {
+        logout.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                //TODO: end notification process (and clean all service data if exist)
                 finish();
             }
         });
 
+        menuViewModel.getTasksResult().observe(this, new Observer<Result<String>>() {
+            @Override
+            public void onChanged(Result<String> tasksResult) {
+                if (tasksResult == null) {
+                    return;
+                }
+                //loadingProgressBar.setVisibility(View.GONE);
+                if (tasksResult instanceof Result.Error) {
+                    showLoadFailed(((Result.Error) tasksResult).getError());
+                }
+                if (tasksResult instanceof Result.Success) {
+                    updateUiWithUser(((Result.Success<String>) tasksResult).getData());
 
+                    //TODO: delegate data to RecyclerView Handler class
+
+                    //TODO: start notification process
+                    //Intent menu = new Intent(SecondFactorActivity.this, MenuActivity.class);
+                    //menu.putExtra("username",tasksResult.getSuccess().getUsername());
+                    //menu.putExtra("apiToken", tasksResult.getSuccess().getApiToken());
+                    //startActivity(menu);
+                }
+                setResult(Activity.RESULT_OK);
+            }
+        });
+    }
+
+    private void updateUiWithUser(String jsonBody) {
+        String body = "Load tasks is successful! " + jsonBody;
+        Toast.makeText(getApplicationContext(), body, Toast.LENGTH_LONG).show();
+    }
+
+    private void showLoadFailed(Exception e) {
+        Toast.makeText(getApplicationContext(), e.getLocalizedMessage(), Toast.LENGTH_SHORT).show();
     }
 }

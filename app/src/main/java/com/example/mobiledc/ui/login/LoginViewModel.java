@@ -10,8 +10,6 @@ import android.util.Patterns;
 
 import com.example.mobiledc.data.LoginRepository;
 import com.example.mobiledc.data.Requests;
-import com.example.mobiledc.data.Result;
-import com.example.mobiledc.data.model.LoggedInUser;
 import com.example.mobiledc.R;
 
 import org.json.JSONException;
@@ -46,7 +44,7 @@ public class LoginViewModel extends ViewModel {
 //        // can be launched in a separate asynchronous job
         OkHttpClient okHttpClient = new OkHttpClient().newBuilder().build();
         Requests.Login1 login1Request = new Requests.Login1(username, password);
-         okHttpClient.newCall(login1Request.getRequest()).enqueue(new Callback() {
+         okHttpClient.newCall(login1Request.postRequest()).enqueue(new Callback() {
              @Override
              public void onFailure(@NonNull Call call, @NonNull IOException e) {
                  loginResult.setValue(new LoginResult(R.string.login_failed));

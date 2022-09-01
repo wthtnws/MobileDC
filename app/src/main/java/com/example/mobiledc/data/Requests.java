@@ -18,7 +18,7 @@ public class Requests {
 
     private Requests() {}
 
-    protected Request getRequest(String uri, String method, @Nullable RequestBody content, @NonNull String token){
+    protected Request doRequest(String uri, String method, @Nullable RequestBody content, @NonNull String token){
         return new Request.Builder()
             .url(URL + uri)
             .method(method, content)
@@ -45,8 +45,8 @@ public class Requests {
             token = "null";
         }
 
-        public Request getRequest() {
-            return super.getRequest(uri,method,body,token);
+        public Request postRequest() {
+            return super.doRequest(uri,method,body,token);
         }
     }
 
@@ -68,8 +68,22 @@ public class Requests {
             token = "";
         }
 
+        public Request postRequest() {
+            return super.doRequest(uri,method,body,token);
+        }
+    }
+
+    public final static class Tasks extends Requests
+    {
+        public Tasks(String token){
+            uri = "tasks";
+            method = "GET";
+            body = null;
+            this.token = token;
+        }
+
         public Request getRequest() {
-            return super.getRequest(uri,method,body,token);
+            return super.doRequest(uri,method,body,token);
         }
     }
 

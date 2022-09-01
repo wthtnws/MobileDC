@@ -1,6 +1,5 @@
 package com.example.mobiledc.client;
 
-import android.os.Handler;
 import android.util.Log;
 
 import androidx.annotation.NonNull;
@@ -44,6 +43,6 @@ public class RequestClient {
 
     public void postLogin1 (String username, String password){
         Requests.Login1 login1Request = new Requests.Login1(username, password);
-        doRequest(login1Request.getRequest());
+        doRequest(login1Request.postRequest());
     }
 }
