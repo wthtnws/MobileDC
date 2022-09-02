@@ -27,17 +27,22 @@ public class MenuViewModel extends ViewModel {
 
     private OkHttpClient okHttpClient;
     private Requests.Tasks tasksRequest;
+    private Requests.Logout logoutRequest;
 
     public MenuViewModel(String auth)
     {
         okHttpClient = new OkHttpClient().newBuilder().build();
         tasksRequest = new Requests.Tasks(auth);
+        logoutRequest = new Requests.Logout(auth);
     }
 
     private MutableLiveData<Result<String>> tasksResult = new MutableLiveData<>();
+    private MutableLiveData<Result<String>> logoutResult = new MutableLiveData<>();
+
     LiveData<Result<String>> getTasksResult() {
         return tasksResult;
     }
+    LiveData<Result<String>> getLogoutResult() { return logoutResult; }
 
     public void reloadTasks(){
         okHttpClient.newCall(tasksRequest.getRequest()).enqueue(new Callback() {
@@ -50,9 +55,7 @@ public class MenuViewModel extends ViewModel {
 
             @Override
             public void onResponse(@NonNull Call call, @NonNull Response response) throws IOException {
-            //TODO: handle the response, if successful - post the data to the observable object
                 Log.i("[0] Response3", "Received");
-
                 String respStr = response.body().string();
                 Log.i("[+++] Response3", respStr);
                 try {
@@ -70,6 +73,39 @@ public class MenuViewModel extends ViewModel {
                     {
                         tasksResult.postValue(new Result.Error(new IOException()));
                         Log.i("[-] Response3", status);
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+            }
+        });
+    }
+
+    public void logout(){
+        okHttpClient.newCall(logoutRequest.postRequest()).enqueue(new Callback() {
+            @Override
+            public void onFailure(@NonNull Call call, @NonNull IOException e) {
+                logoutResult.postValue(new Result.Error(e));
+                Log.i("[-] Request4", "Failed");
+                e.printStackTrace();
+            }
+
+            @Override
+            public void onResponse(@NonNull Call call, @NonNull Response response) throws IOException {
+                Log.i("[0] Response4", "Received");
+                String respStr = response.body().string();
+                Log.i("[+++] Response4", respStr);
+                try {
+                    JSONObject jsonObject = new JSONObject(respStr);
+                    String status = jsonObject.getString("status");
+                    if (response.isSuccessful()){
+                        logoutResult.postValue(new Result.Success<String>(status));
+                        Log.i("[+] Response4 status", status);
+                    }
+                    else
+                    {
+                        logoutResult.postValue(new Result.Error(new IOException()));
+                        Log.i("[-] Response4", status);
                     }
                 } catch (JSONException e) {
                     e.printStackTrace();

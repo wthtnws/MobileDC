@@ -14,6 +14,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.lifecycle.Observer;
 import androidx.recyclerview.widget.LinearLayoutManager;
 
+import com.example.mobiledc.data.Requests;
 import com.example.mobiledc.data.Result;
 import com.example.mobiledc.databinding.ActivityTaskmenuBinding;
 import com.example.mobiledc.ui.login.LoggedInUserView;
@@ -48,8 +49,7 @@ public class MenuActivity extends AppCompatActivity {
         logout.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                //TODO: end notification process (and clean all service data if exist)
-                finish();
+                menuViewModel.logout();
             }
         });
 
@@ -67,7 +67,7 @@ public class MenuActivity extends AppCompatActivity {
                     updateUiWithUser(((Result.Success<String>) tasksResult).getData());
 
                     //TODO: delegate data to RecyclerView Handler class
-
+                    //
                     //TODO: start notification process
                     //Intent menu = new Intent(SecondFactorActivity.this, MenuActivity.class);
                     //menu.putExtra("username",tasksResult.getSuccess().getUsername());
@@ -75,6 +75,23 @@ public class MenuActivity extends AppCompatActivity {
                     //startActivity(menu);
                 }
                 setResult(Activity.RESULT_OK);
+            }
+        });
+
+        menuViewModel.getLogoutResult().observe(this, new Observer<Result<String>>() {
+            @Override
+            public void onChanged(Result<String> logoutResult) {
+                if (logoutResult == null) {
+                    return;
+                }
+                if (logoutResult instanceof Result.Error) {
+                    showLoadFailed(((Result.Error) logoutResult).getError());
+                }
+                if (logoutResult instanceof Result.Success) {
+                    //TODO: end notification process (and clean all service data if exist)
+                    //setResult(Activity.RESULT_OK);
+                    //finish();
+                }
             }
         });
     }

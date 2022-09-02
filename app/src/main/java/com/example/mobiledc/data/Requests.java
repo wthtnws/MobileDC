@@ -87,4 +87,15 @@ public class Requests {
         }
     }
 
+    public final static class Logout extends Requests
+    {
+        public Logout(String token) {
+            uri = "logout";
+            method = "POST";
+            body = RequestBody.create(mediaType, "{}");;
+            this.token = token;
+        }
+        public Request postRequest() { return super.doRequest(uri,method,body,token);}
+    }
+
 }

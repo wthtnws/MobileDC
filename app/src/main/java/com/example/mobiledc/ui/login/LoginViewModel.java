@@ -47,7 +47,7 @@ public class LoginViewModel extends ViewModel {
          okHttpClient.newCall(login1Request.postRequest()).enqueue(new Callback() {
              @Override
              public void onFailure(@NonNull Call call, @NonNull IOException e) {
-                 loginResult.setValue(new LoginResult(R.string.login_failed));
+                 loginResult.postValue(new LoginResult(R.string.login_failed));
                  Log.i("[-] Request", "Failed");
                  e.printStackTrace();
              }
