@@ -1,9 +1,19 @@
 package com.example.mobiledc.ui.menu;
 
+import androidx.annotation.NonNull;
+
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+import org.json.JSONTokener;
+
+import java.util.ArrayList;
+import java.util.List;
+
 public class TaskItem {
-    private double deadline;
+    private long deadline;
     private int freq;
-    private double initTime;
+    private long initTime;
     private String status;
     private String subj;
     private String taskID;
@@ -11,7 +21,7 @@ public class TaskItem {
     private String text;
     private String title;
 
-    public TaskItem(double deadline, int freq, double init_time, String status, String subj, String taskID, String teacher, String text, String title) {
+    public TaskItem(long deadline, int freq, long init_time, String status, String subj, String taskID, String teacher, String text, String title) {
         this.deadline = deadline;
         this.freq = freq;
         this.initTime = init_time;
@@ -23,7 +33,37 @@ public class TaskItem {
         this.title = title;
     }
 
-    public double getDeadline() {
+    private TaskItem (@NonNull JSONObject jsonObject){
+        try {
+            this.deadline = jsonObject.getLong("deadline");
+            this.freq = jsonObject.getInt("freq");
+            this.initTime = jsonObject.getLong("init_time");
+            this.status = jsonObject.getString("status");
+            this.subj = jsonObject.getString("subj");
+            this.taskID = jsonObject.getString("task_id");
+            this.teacher = jsonObject.getString("teacher");
+            this.text = jsonObject.getString("text");
+            this.title = jsonObject.getString("title");
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public static List<TaskItem> parseFromJSON(@NonNull JSONArray jsonArray)
+    {
+        List<TaskItem> taskItemList = new ArrayList<>();
+        for (int i = 0; i < jsonArray.length(); i++) {
+            try {
+                JSONObject jsonObject = jsonArray.getJSONObject(i);
+                taskItemList.add(new TaskItem(jsonObject));
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+        }
+        return taskItemList;
+    }
+
+    public long getDeadline() {
         return deadline;
     }
 
@@ -31,7 +71,7 @@ public class TaskItem {
         return freq;
     }
 
-    public double getInitTime() {
+    public long getInitTime() {
         return initTime;
     }
 

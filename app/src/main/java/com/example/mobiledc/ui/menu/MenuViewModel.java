@@ -13,6 +13,7 @@ import com.example.mobiledc.data.Result;
 import com.example.mobiledc.ui.login.LoggedInUserView;
 import com.example.mobiledc.ui.login.LoginResult;
 
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -45,40 +46,58 @@ public class MenuViewModel extends ViewModel {
     LiveData<Result<String>> getLogoutResult() { return logoutResult; }
 
     public void reloadTasks(){
-        okHttpClient.newCall(tasksRequest.getRequest()).enqueue(new Callback() {
-            @Override
-            public void onFailure(@NonNull Call call, @NonNull IOException e) {
-                tasksResult.setValue(new Result.Error(e));
-                Log.i("[-] Request3", "Failed");
-                e.printStackTrace();
-            }
-
-            @Override
-            public void onResponse(@NonNull Call call, @NonNull Response response) throws IOException {
-                Log.i("[0] Response3", "Received");
-                String respStr = response.body().string();
-                Log.i("[+++] Response3", respStr);
-                try {
-                    JSONObject jsonObject = new JSONObject(respStr);
-                    String status = jsonObject.getString("status");
-
-                    if (response.isSuccessful()){
-                        String tasks = jsonObject.getString("tasks");
-                        //TODO: parse and handle the JSON body (maybe in Result.Success constructor)
-                        tasksResult.postValue(new Result.Success<String>(tasks));
-                        Log.i("[+] Response3 status", status);
-                        Log.i("[+] Response3 token", "apiToken");
-                    }
-                    else
-                    {
-                        tasksResult.postValue(new Result.Error(new IOException()));
-                        Log.i("[-] Response3", status);
-                    }
-                } catch (JSONException e) {
+        try {
+            okHttpClient.newCall(tasksRequest.getRequest()).enqueue(new Callback() {
+                @Override
+                public void onFailure(@NonNull Call call, @NonNull IOException e) {
+                    tasksResult.postValue(new Result.Error(e));
+                    Log.i("[-] Request3", "Failed");
                     e.printStackTrace();
                 }
-            }
-        });
+
+                @Override
+                public void onResponse(@NonNull Call call, @NonNull Response response) throws IOException {
+                    Log.i("[0] Response3", "Received");
+                    String respStr = response.body().string();
+                    Log.i("[+++] Response3", respStr);
+                    try {
+                        JSONObject jsonObject = new JSONObject(respStr);
+                        String status = jsonObject.getString("status");
+                        if (response.isSuccessful()) {
+
+                            Log.i("[+] Response3 status", status);
+
+                            if(jsonObject.has("tasks")) {
+
+                                JSONArray tasks = jsonObject.getJSONArray("tasks");
+                                String task = tasks.getString(0);
+                                int initTime = ((int) tasks.getJSONObject(0).get("init_time"));
+
+                                //TODO: parse and handle the JSON body (maybe in Result.Success constructor)
+                                tasksResult.postValue(new Result.Success<JSONArray>(tasks));
+
+                                Log.i("[+] Response3 tasks", tasks.toString() + "\n length = " + tasks.length());
+                                Log.i("[+] Response3 task", task);
+                                Log.i("[+] Response3 taskID", Integer.valueOf(initTime).toString());
+                            }
+                            else {
+                                tasksResult.postValue(new Result.Success<String>(status));
+                            }
+
+                        } else {
+                            tasksResult.postValue(new Result.Error(new IOException("ooops NO RELOAD")));
+                            Log.i("[-] Response3", status);
+                        }
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                    }
+                }
+            });
+        }
+        catch (Exception e)
+        {
+            e.printStackTrace();
+        }
     }
 
     public void logout(){
