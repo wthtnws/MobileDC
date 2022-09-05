@@ -1,14 +1,19 @@
 package  com.example.mobiledc.ui.login;
 
 import android.app.Activity;
+import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
+import android.util.ArraySet;
+import android.util.Log;
 import android.view.KeyEvent;
 import android.view.View;
 import android.view.inputmethod.EditorInfo;
 import android.widget.Button;
+import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.ProgressBar;
 import android.widget.TextView;
@@ -22,27 +27,84 @@ import androidx.lifecycle.ViewModelProvider;
 
 import com.example.mobiledc.R;
 import com.example.mobiledc.databinding.ActivityLoginBinding;
+import com.example.mobiledc.ui.menu.MenuActivity;
 import com.example.mobiledc.ui.secondfactor.SecondFactorActivity;
+
+import java.util.Arrays;
+import java.util.Iterator;
+import java.util.LinkedHashSet;
+import java.util.Set;
 
 public class LoginActivity extends AppCompatActivity {
 
     private LoginViewModel loginViewModel;
     private ActivityLoginBinding binding;
+    private SharedPreferences sharedPreferences;
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+        Log.i("ON_START", "Login activity");
+
+        if(sharedPreferences.contains("log")&&sharedPreferences.contains("pas"))
+        {
+            String log = sharedPreferences.getString("log","");
+            String pas = sharedPreferences.getString("pas","");
+            Log.i("SHARED PREF",log + " " + pas);
+            loginViewModel.login(log,
+                    pas);
+        }
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        Log.i("ON_RESUME", "Login activity");
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        Log.i("ON_PAUSE", "Login activity");
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        Log.i("ON_STOP", "Login activity");
+    }
+
+    @Override
+    protected void onRestart() {
+        super.onRestart();
+        Log.i("ON_RESTART", "Login activity");
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        Log.i("ON_DESTROY", "Login activity");
+    }
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        Log.i("ON_CREATE", "Login activity");
 
         binding = ActivityLoginBinding.inflate(getLayoutInflater());
-        setContentView(binding.getRoot());
 
         loginViewModel = new ViewModelProvider(this, new LoginViewModelFactory())
                 .get(LoginViewModel.class);
+
+        sharedPreferences = getApplicationContext().getSharedPreferences(getString(R.string.APP_PREFERENCE),Context.MODE_PRIVATE);
 
         final EditText usernameEditText = binding.username;
         final EditText passwordEditText = binding.password;
         final Button loginButton = binding.login;
         final ProgressBar loadingProgressBar = binding.loading;
+        final CheckBox autoCredentials = binding.autologinCheckBox;
+
+        setContentView(binding.getRoot());
 
         loginViewModel.getLoginFormState().observe(this, new Observer<LoginFormState>() {
             @Override
@@ -69,17 +131,23 @@ public class LoginActivity extends AppCompatActivity {
                 loadingProgressBar.setVisibility(View.GONE);
                 if (loginResult.getError() != null) {
                     showLoginFailed(loginResult.getError());
+                    relogin();
                 }
                 if (loginResult.getSuccess() != null) {
                     updateUiWithUser(loginResult.getSuccess());
                     Intent secondFactor = new Intent(LoginActivity.this, SecondFactorActivity.class);
                     secondFactor.putExtra("username",loginResult.getSuccess().getUsername());
+
+                    if(autoCredentials.isChecked())
+                    {
+                        Log.i("CHECKBOX","check!");
+                        saveCreds(loginResult);
+                    }
                     startActivity(secondFactor);
                 }
                 setResult(Activity.RESULT_OK);
-
                 //Complete and destroy login activity once successful
-                //finish();
+                finish();
             }
         });
 
@@ -122,6 +190,22 @@ public class LoginActivity extends AppCompatActivity {
                         passwordEditText.getText().toString());
             }
         });
+    }
+
+    private void saveCreds(LoginResult loginResult){
+        SharedPreferences.Editor editor = sharedPreferences.edit();
+        editor.putString("log",loginResult.getSuccess().getUsername());
+        editor.putString("pas", loginResult.getSuccess().getApiToken());
+        editor.apply();
+    }
+
+    private void relogin(){
+        SharedPreferences.Editor editor = sharedPreferences.edit();
+        editor.remove("log");
+        editor.remove("pas");
+        editor.apply();
+        Intent loginActivity = new Intent(LoginActivity.this, LoginActivity.class);
+        startActivity(loginActivity);
     }
 
     private void updateUiWithUser(LoggedInUserView model) {

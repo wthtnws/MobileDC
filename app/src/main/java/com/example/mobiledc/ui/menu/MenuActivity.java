@@ -1,7 +1,9 @@
 package com.example.mobiledc.ui.menu;
 
 import android.app.Activity;
+import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
@@ -16,12 +18,15 @@ import androidx.lifecycle.Observer;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.example.mobiledc.R;
 import com.example.mobiledc.data.Requests;
 import com.example.mobiledc.data.Result;
 import com.example.mobiledc.databinding.ActivityTaskmenuBinding;
 import com.example.mobiledc.ui.login.LoggedInUserView;
+import com.example.mobiledc.ui.login.LoginActivity;
 import com.example.mobiledc.ui.login.LoginResult;
 import com.example.mobiledc.ui.menu.recycleradapter.MenuAdapter;
+import com.example.mobiledc.ui.secondfactor.SecondFactorActivity;
 
 import org.json.JSONArray;
 
@@ -36,24 +41,65 @@ public class MenuActivity extends AppCompatActivity {
     private MenuViewModel menuViewModel;
     private RecyclerView tasksRecyclerView;
     private MenuAdapter menuAdapter;
+    private SharedPreferences sharedPreferences;
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+        Log.i("ON_START", "Menu activity");
+        menuViewModel.reloadTasks();
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        Log.i("ON_RESUME", "Menu activity");
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        Log.i("ON_PAUSE", "Menu activity");
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        Log.i("ON_STOP", "Menu activity");
+    }
+
+    @Override
+    protected void onRestart() {
+        super.onRestart();
+        Log.i("ON_RESTART", "Menu activity");
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        Log.i("ON_DESTROY", "Menu activity");
+    }
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        Log.i("ON_CREATE", "Menu activity");
 
         taskmenuBinding = ActivityTaskmenuBinding.inflate(getLayoutInflater());
         setContentView(taskmenuBinding.getRoot());
 
         menuViewModel = new MenuViewModel((String) getIntent().getSerializableExtra("apiToken"));
 
+        sharedPreferences = getApplicationContext().getSharedPreferences(getString(R.string.APP_PREFERENCE),Context.MODE_PRIVATE);
+
         final Button reload = taskmenuBinding.reloadtasks;
         final Button logout = taskmenuBinding.logout;
+        final Button exit = taskmenuBinding.exit;
         final ProgressBar menuProgressBar = taskmenuBinding.menuProgressBar;
         final TextView noDeadlinesText = taskmenuBinding.noDeadlinesText;
 
         recyclerViewInit();
-
-        menuViewModel.reloadTasks();
 
         reload.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -73,6 +119,13 @@ public class MenuActivity extends AppCompatActivity {
             }
         });
 
+        exit.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                finish();
+            }
+        });
+
         menuViewModel.getTasksResult().observe(this, new Observer<Result<String>>() {
             @Override
             public void onChanged(Result<String> tasksResult) {
@@ -88,17 +141,20 @@ public class MenuActivity extends AppCompatActivity {
                     if (((Result.Success<?>) tasksResult).getData() instanceof String){
                         updateUiWithUser(((Result.Success<String>) tasksResult).getData());
                         noDeadlinesText.setVisibility(View.VISIBLE);
+                        //TODO: if status "Unauthorized" start the login process again
+                        // to refresh apitoken
+                        if(((Result.Success<String>) tasksResult).getData().equals("Unathorized")) {
+                            relogin();
+                            finish();
+                        }
+
                     }
-                    else
+                    else {
                         menuAdapter.setTaskItemList(TaskItem.parseFromJSON((
                                 (Result.Success<JSONArray>) tasksResult).getData()));
+                        //TODO:save tasks to local storage, start notification process
+                    }
 
-                    //menuAdapter.setTaskItemList(new ArrayList<>());
-                    //TODO:save tasks to local storage, start notification process
-                    //Intent menu = new Intent(SecondFactorActivity.this, MenuActivity.class);
-                    //menu.putExtra("username",tasksResult.getSuccess().getUsername());
-                    //menu.putExtra("apiToken", tasksResult.getSuccess().getApiToken());
-                    //startActivity(menu);
                 }
                 setResult(Activity.RESULT_OK);
             }
@@ -114,8 +170,10 @@ public class MenuActivity extends AppCompatActivity {
                     showLoadFailed(((Result.Error) logoutResult).getError());
                 }
                 if (logoutResult instanceof Result.Success) {
-                    //TODO: end notification process (and clean all service data if exist)
-                    setResult(Activity.RESULT_OK);
+                    //TODO: end notification process (and clean all service data in local storages)
+
+                    relogin();
+                    //setResult(Activity.RESULT_OK);
                     finish();
                 }
             }
@@ -130,6 +188,15 @@ public class MenuActivity extends AppCompatActivity {
             menuAdapter = new MenuAdapter();
             menuAdapter.setTaskItemList(new ArrayList<>());
             tasksRecyclerView.setAdapter(menuAdapter);
+    }
+
+    private void relogin(){
+        SharedPreferences.Editor editor = sharedPreferences.edit();
+        editor.remove("log");
+        editor.remove("pas");
+        editor.apply();
+        Intent loginActivity = new Intent(MenuActivity.this, LoginActivity.class);
+        startActivity(loginActivity);
     }
 
     private List<TaskItem> getTasks(){

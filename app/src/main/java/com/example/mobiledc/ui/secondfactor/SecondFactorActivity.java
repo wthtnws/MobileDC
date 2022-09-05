@@ -1,10 +1,13 @@
 package com.example.mobiledc.ui.secondfactor;
 
 import android.app.Activity;
+import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
+import android.util.Log;
 import android.view.KeyEvent;
 import android.view.View;
 import android.view.inputmethod.EditorInfo;
@@ -19,8 +22,10 @@ import androidx.annotation.StringRes;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.lifecycle.Observer;
 
+import com.example.mobiledc.R;
 import com.example.mobiledc.databinding.ActivitySecondfactorBinding;
 import com.example.mobiledc.ui.login.LoggedInUserView;
+import com.example.mobiledc.ui.login.LoginActivity;
 import com.example.mobiledc.ui.login.LoginFormState;
 import com.example.mobiledc.ui.login.LoginResult;
 import com.example.mobiledc.ui.menu.MenuActivity;
@@ -29,16 +34,55 @@ public class SecondFactorActivity extends AppCompatActivity {
 
     private SecondFactorViewModel secondFactorViewModel;
     private ActivitySecondfactorBinding secondfactorBinding;
+    private SharedPreferences sharedPreferences;
 
+    @Override
+    protected void onStart() {
+        super.onStart();
+        Log.i("ON_START", "Login2 activity");
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        Log.i("ON_RESUME", "Login2 activity");
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        Log.i("ON_PAUSE", "Login2 activity");
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        Log.i("ON_STOP", "Login2 activity");
+    }
+
+    @Override
+    protected void onRestart() {
+        super.onRestart();
+        Log.i("ON_RESTART", "Login2 activity");
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        Log.i("ON_DESTROY", "Login2 activity");
+    }
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
+        Log.i("ON_CREATE", "Login2 activity");
+
         secondfactorBinding = ActivitySecondfactorBinding.inflate(getLayoutInflater());
         setContentView(secondfactorBinding.getRoot());
 
         secondFactorViewModel = new SecondFactorViewModel();
+        sharedPreferences = getApplicationContext().getSharedPreferences(getString(R.string.APP_PREFERENCE), Context.MODE_PRIVATE);
 
         final EditText codeText = secondfactorBinding.code;
         final Button secFactorButton = secondfactorBinding.check2factor;
@@ -53,6 +97,7 @@ public class SecondFactorActivity extends AppCompatActivity {
                 loadingProgressBar.setVisibility(View.GONE);
                 if (login2Result.getError() != null) {
                     showLoginFailed(login2Result.getError());
+                    relogin();
                 }
                 if (login2Result.getSuccess() != null) {
                     updateUiWithUser(login2Result.getSuccess());
@@ -62,7 +107,6 @@ public class SecondFactorActivity extends AppCompatActivity {
                     startActivity(menu);
                 }
                 setResult(Activity.RESULT_OK);
-
                 //Complete and destroy login activity once successful
                 finish();
             }
@@ -121,6 +165,15 @@ public class SecondFactorActivity extends AppCompatActivity {
             }
         });
     }
+    private void relogin(){
+        SharedPreferences.Editor editor = sharedPreferences.edit();
+        editor.remove("log");
+        editor.remove("pas");
+        editor.apply();
+        Intent loginActivity = new Intent(SecondFactorActivity.this, LoginActivity.class);
+        startActivity(loginActivity);
+    }
+
     private void updateUiWithUser(LoggedInUserView model) {
         String welcome = "Authentication step 2 is successful! " + model.getUsername();
         // TODO : initiate successful logged in experience

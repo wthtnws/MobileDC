@@ -13,4 +13,5 @@
     <string name="invalid_code">Code must contain 6 characters</string>
     <string name="login_failed">"Login failed"</string>
     <string name="input_code">Input code</string>
+    <string name="APP_PREFERENCE">App_pref</string>
 </resources>

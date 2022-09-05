@@ -54,7 +54,7 @@ public class LoginViewModel extends ViewModel {
 
              @Override
              public void onResponse(@NonNull Call call, @NonNull Response response) throws IOException {
-                 Log.i("[0] Response", "Received");
+                 Log.i("[3] Response", "Received");
                  String respStr = response.body().string();
                  Log.i("[+++] Response", respStr);
                  try {
@@ -62,7 +62,7 @@ public class LoginViewModel extends ViewModel {
                      String jsonStr = jsonObject.getString("status");
 
                      if (response.isSuccessful()){
-                         loginResult.postValue(new LoginResult(new LoggedInUserView(username,null)));
+                         loginResult.postValue(new LoginResult(new LoggedInUserView(username,password)));
                          Log.i("[+] Response status", jsonStr);
                      }
                      else

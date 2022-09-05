@@ -12,7 +12,7 @@ public class LoggedInUserView {
 
     public LoggedInUserView(String displayName, @Nullable String apiToken) {
         this.username = displayName;
-        this.apiToken =apiToken;
+        this.apiToken = apiToken;
     }
 
     public String getUsername() {

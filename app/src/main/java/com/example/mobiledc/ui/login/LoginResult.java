@@ -19,8 +19,6 @@ public class LoginResult {
         this.success = success;
     }
 
-
-
     @Nullable
     public LoggedInUserView getSuccess() {
         return success;
