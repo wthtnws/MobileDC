@@ -19,21 +19,16 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.mobiledc.R;
-import com.example.mobiledc.data.Requests;
 import com.example.mobiledc.data.Result;
 import com.example.mobiledc.databinding.ActivityTaskmenuBinding;
-import com.example.mobiledc.ui.login.LoggedInUserView;
+import com.example.mobiledc.notification.AlarmHandler;
+import com.example.mobiledc.notification.NotificationBroadcastReciever;
 import com.example.mobiledc.ui.login.LoginActivity;
-import com.example.mobiledc.ui.login.LoginResult;
 import com.example.mobiledc.ui.menu.recycleradapter.MenuAdapter;
-import com.example.mobiledc.ui.secondfactor.SecondFactorActivity;
 
 import org.json.JSONArray;
 
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.List;
 
 public class MenuActivity extends AppCompatActivity {
 
@@ -42,11 +37,13 @@ public class MenuActivity extends AppCompatActivity {
     private RecyclerView tasksRecyclerView;
     private MenuAdapter menuAdapter;
     private SharedPreferences sharedPreferences;
+    private NotificationBroadcastReciever broadcastReceiver;
 
     @Override
     protected void onStart() {
         super.onStart();
         Log.i("ON_START", "Menu activity");
+
         menuViewModel.reloadTasks();
     }
 
@@ -115,7 +112,12 @@ public class MenuActivity extends AppCompatActivity {
         logout.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                //TODO: stop notification service
+                AlarmHandler.cancelAll(MenuActivity.this);
+                //TODO: clear local storage
+                TaskItem.clearTasksPref(sharedPreferences.edit());
                 menuViewModel.logout();
+
             }
         });
 
@@ -134,6 +136,12 @@ public class MenuActivity extends AppCompatActivity {
                 }
                 menuProgressBar.setVisibility(View.GONE);
                 tasksRecyclerView.setVisibility(View.VISIBLE);
+
+                //TODO: cancel alarms
+                AlarmHandler.cancelAll(MenuActivity.this);
+                //TODO: clear local storage
+                TaskItem.clearTasksPref(sharedPreferences.edit());
+
                 if (tasksResult instanceof Result.Error) {
                     showLoadFailed(((Result.Error) tasksResult).getError());
                 }
@@ -141,18 +149,20 @@ public class MenuActivity extends AppCompatActivity {
                     if (((Result.Success<?>) tasksResult).getData() instanceof String){
                         updateUiWithUser(((Result.Success<String>) tasksResult).getData());
                         noDeadlinesText.setVisibility(View.VISIBLE);
-                        //TODO: if status "Unauthorized" start the login process again
-                        // to refresh apitoken
                         if(((Result.Success<String>) tasksResult).getData().equals("Unathorized")) {
                             relogin();
                             finish();
                         }
-
                     }
                     else {
-                        menuAdapter.setTaskItemList(TaskItem.parseFromJSON((
-                                (Result.Success<JSONArray>) tasksResult).getData()));
-                        //TODO:save tasks to local storage, start notification process
+                        ArrayList<TaskItem> taskItemArrayList = (ArrayList<TaskItem>) TaskItem.parseFromJSON((
+                                (Result.Success<JSONArray>) tasksResult).getData());
+                        menuAdapter.setTaskItemList(taskItemArrayList);
+                        //TODO:save tasks to local storage
+                        TaskItem.saveTasksPref(sharedPreferences.edit(),taskItemArrayList);
+                        //TODO:set the alarms
+                        AlarmHandler.setAlarms(MenuActivity.this,taskItemArrayList);
+
                     }
 
                 }
@@ -170,8 +180,6 @@ public class MenuActivity extends AppCompatActivity {
                     showLoadFailed(((Result.Error) logoutResult).getError());
                 }
                 if (logoutResult instanceof Result.Success) {
-                    //TODO: end notification process (and clean all service data in local storages)
-
                     relogin();
                     //setResult(Activity.RESULT_OK);
                     finish();
@@ -197,18 +205,6 @@ public class MenuActivity extends AppCompatActivity {
         editor.apply();
         Intent loginActivity = new Intent(MenuActivity.this, LoginActivity.class);
         startActivity(loginActivity);
-    }
-
-    private List<TaskItem> getTasks(){
-        return new ArrayList<>(Arrays.asList(
-                new TaskItem(1234567890, 600, 123456789, "in progress", "Kripta", "someID1", "Shenets", "texttext1", "title1"),
-                new TaskItem(1234567890, 600, 123456789, "in progress", "OOP", "someID2", "Chernov", "texttext2", "title2"),
-                new TaskItem(1234567890, 600, 123456789, "in progress", "SUBD", "someID3", "Poltavceva", "texttext3", "title3"),
-                new TaskItem(1234567890, 600, 123456789, "in progress", "BIP", "someID4", "Dahnovich", "texttext4", "title4"),
-                new TaskItem(1234567890, 600, 123456789, "in progress", "Kripta2", "someID5", "EB", "texttext5", "title5"),
-                new TaskItem(1234567890, 600, 123456789, "in progress", "Mobilki", "someID6", "Ivanov", "texttext6", "title6"),
-                new TaskItem(1234567890, 600, 123456789, "in progress", "Litrbol", "someID7", "Dmitriev", "Moskva p'et pivo", "Avaria p'et pivo")
-                ));
     }
 
     private void updateUiWithUser(String data) {
