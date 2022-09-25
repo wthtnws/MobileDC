@@ -30,9 +30,9 @@ public class AlarmHandler {
                 Intent intent = new Intent(context, NotificationBroadcastReciever.class);
                 intent.setAction(INTENT_ACTION);
                 intent.putExtra("task", item.getFull());
-
+                Log.i("ALARM SET", intent.getStringArrayExtra("task")[8]);
                 PendingIntent pendingNotificationIntent = PendingIntent.getBroadcast(context, id++, intent, PendingIntent.FLAG_IMMUTABLE);
-                alarmManager.setRepeating(AlarmManager.ELAPSED_REALTIME, SystemClock.elapsedRealtime() + 30000, item.getFreq() * 100, pendingNotificationIntent);
+                alarmManager.setRepeating(AlarmManager.ELAPSED_REALTIME, SystemClock.elapsedRealtime()+30000, item.getFreq() * 100, pendingNotificationIntent);
                 Log.i("ALARM SET", "freq: " + item.getFreq() + " title: " + item.getTitle());
             }
         }

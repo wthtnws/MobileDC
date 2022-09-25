@@ -8,9 +8,13 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
+import java.time.format.DateTimeFormatter;
+import java.time.format.FormatStyle;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
+import java.util.Locale;
 
 public class TaskItem {
     private Long deadline;
@@ -76,8 +80,16 @@ public class TaskItem {
         editor.apply();
     }
 
-    public Long getDeadline() {
+    public Long getDeadlineLong() {
         return deadline;
+    }
+
+    public LocalDateTime getDeadline() {
+        LocalDateTime deadlineTime = LocalDateTime.ofEpochSecond(this.getDeadlineLong(),0, ZoneOffset.UTC);
+        deadlineTime.
+                format(DateTimeFormatter.ofLocalizedDateTime(FormatStyle.MEDIUM).
+                        withLocale(Locale.UK));
+        return deadlineTime;
     }
 
     public Integer getFreq() {

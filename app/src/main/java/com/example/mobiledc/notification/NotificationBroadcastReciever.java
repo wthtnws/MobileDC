@@ -25,8 +25,10 @@ public class NotificationBroadcastReciever extends BroadcastReceiver {
         // an Intent broadcast.
         Log.d(LOG_TAG, "onReceive");
         Log.d(LOG_TAG, "action = " + intent.getAction());
+
         Log.d(LOG_TAG, "title = " + intent.getStringArrayExtra("task")[8]);
 
+        Log.d(LOG_TAG, "AFTER GETTING TITLE");
         String[] taskArr = intent.getStringArrayExtra("task").clone();
         TaskItem taskItem = new TaskItem(
                 Long.valueOf(taskArr[0]),
@@ -42,7 +44,9 @@ public class NotificationBroadcastReciever extends BroadcastReceiver {
         NotificationChannel thisChannel = inProgressChannel;
         String thisChannelId = "IN_PROGRESS_CHANNEL";
         int thisIcon = R.drawable.ic_stat_name;
-        //TODO: check the deadline, if it has been passed, then stop alarm and don't notify
+        //TODO: check the deadline, if it has been passed, then rewrite the file
+
+
         if(taskItem.getStatus().equals(context.getString(R.string.deadline))){
             thisChannel = deadlineChannel;
             thisChannelId = "DEADLINE_CHANNEL";
@@ -51,8 +55,8 @@ public class NotificationBroadcastReciever extends BroadcastReceiver {
         NotificationCompat.Builder mNotifyBuilder = new NotificationCompat.Builder(context)
                 .setSmallIcon(thisIcon)
                 .setAutoCancel(true)
-                .setContentTitle(taskItem.getSubj() + " "+ taskItem.getTitle())
-                .setContentText(taskItem.getDeadline().toString())
+                .setContentTitle(taskItem.getSubj() + " "+ taskItem.getTitle() + " " + taskItem.getStatus())
+                .setContentText("Remaining time: " + taskItem.getDeadline().toString())
                 .setAutoCancel(true)
                 .setStyle(new NotificationCompat.BigTextStyle().bigText(taskItem.getText()))
                 .setChannelId(thisChannelId);

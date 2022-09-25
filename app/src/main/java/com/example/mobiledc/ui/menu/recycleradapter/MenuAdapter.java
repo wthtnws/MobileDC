@@ -1,20 +1,16 @@
 package com.example.mobiledc.ui.menu.recycleradapter;
 
-import com.example.mobiledc.R;
-
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
-import androidx.recyclerview.widget.RecyclerView;
-
-import com.example.mobiledc.ui.menu.TaskItem;
 
 import androidx.annotation.NonNull;
+import androidx.recyclerview.widget.RecyclerView;
 
-import java.util.ArrayList;
-import java.util.Date;
+import com.example.mobiledc.R;
+import com.example.mobiledc.ui.menu.TaskItem;
+
 import java.util.List;
 
 
@@ -70,7 +66,7 @@ public class MenuAdapter extends RecyclerView.Adapter<MenuAdapter.TaskViewHolder
         }
 
         public void bind(TaskItem taskItem){
-            deadlineTextView.setText(new Date(taskItem.getDeadline()).toString());
+            deadlineTextView.setText(taskItem.getDeadline().toString());
             statusTextView.setText(taskItem.getStatus());
             subjectTextView.setText(taskItem.getSubj());
             teacherTextView.setText(taskItem.getTeacher());
