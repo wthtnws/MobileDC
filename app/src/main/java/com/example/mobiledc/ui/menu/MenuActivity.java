@@ -56,7 +56,7 @@ public class MenuActivity extends AppCompatActivity {
                 if(s == null){
                     return;
                 }
-                else if(s.equals("Unathorized")){
+                else if(s.equals("Unauthorized.")){
                     relogin();
                     finish();
                 }
@@ -185,7 +185,7 @@ public class MenuActivity extends AppCompatActivity {
                     if (((Result.Success<?>) tasksResult).getData() instanceof String){
                         updateUiWithUser(((Result.Success<String>) tasksResult).getData());
                         noDeadlinesText.setVisibility(View.VISIBLE);
-                        if(((Result.Success<String>) tasksResult).getData().equals("Unathorized")) {
+                        if(((Result.Success<String>) tasksResult).getData().equals("Unauthorized.")) {
                             relogin();
                             finish();
                         }

@@ -83,6 +83,9 @@ public class UpdatePreferenceBroadcastReceiver extends BroadcastReceiver {
 
                     } else {
                         Log.i("[-] UPDATE RESP NOT SUCCESS", status);
+                        SharedPreferences.Editor editor = sharedPreferences.edit();
+                        editor.putString(status,"status is" + status);
+                        editor.commit();
                     }
                 } catch (JSONException e) {
                     e.printStackTrace();
