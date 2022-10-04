@@ -37,9 +37,44 @@ public class MenuActivity extends AppCompatActivity {
     private MenuAdapter menuAdapter;
     private SharedPreferences sharedPreferences;
 
+    private ProgressBar menuProgressBar;
+    private TextView noDeadlinesText;
+    private SharedPreferences.OnSharedPreferenceChangeListener sharedPreferenceChangeListener;
+
+
     @Override
     protected void onStart() {
         super.onStart();
+
+        sharedPreferenceChangeListener = new SharedPreferences.OnSharedPreferenceChangeListener() {
+            @Override
+            public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String s) {
+                Log.i("LISTENER PREF", "PREFS CHANGED with " + s);
+                tasksRecyclerView.setVisibility(View.GONE);
+                noDeadlinesText.setVisibility(View.GONE);
+                //menuProgressBar.setVisibility(View.VISIBLE);
+                if(s == null){
+                    return;
+                }
+                else if(s.equals("Unathorized")){
+                    relogin();
+                    finish();
+                }
+                else if((s.equals("OK"))) {
+                    menuProgressBar.setVisibility(View.GONE);
+                    noDeadlinesText.setVisibility(View.VISIBLE);
+                }
+                else{
+                    menuProgressBar.setVisibility(View.GONE);
+                    tasksRecyclerView.setVisibility(View.VISIBLE);
+                    menuAdapter.setTaskItemList(TaskItem.getTasksPref(sharedPreferences));
+                }
+                setResult(Activity.RESULT_OK);
+            }
+        };
+
+        sharedPreferences.registerOnSharedPreferenceChangeListener(sharedPreferenceChangeListener);
+        menuViewModel.reloadTasks();
         Log.i("ON_START", "Menu activity");
     }
 
@@ -58,6 +93,7 @@ public class MenuActivity extends AppCompatActivity {
     @Override
     protected void onStop() {
         super.onStop();
+        sharedPreferences.unregisterOnSharedPreferenceChangeListener(sharedPreferenceChangeListener);
         Log.i("ON_STOP", "Menu activity");
     }
 
@@ -86,41 +122,20 @@ public class MenuActivity extends AppCompatActivity {
         final Button reload = taskmenuBinding.reloadtasks;
         final Button logout = taskmenuBinding.logout;
         final Button exit = taskmenuBinding.exit;
-        final ProgressBar menuProgressBar = taskmenuBinding.menuProgressBar;
-        final TextView noDeadlinesText = taskmenuBinding.noDeadlinesText;
+        menuProgressBar = taskmenuBinding.menuProgressBar;
+        noDeadlinesText = taskmenuBinding.noDeadlinesText;
 
-        menuViewModel = new MenuViewModel((String) getIntent().getSerializableExtra("apiToken"));
+        String apiToken = (String) getIntent().getSerializableExtra("apiToken");
+
+        menuViewModel = new MenuViewModel(apiToken);
 
         sharedPreferences = getApplicationContext().getSharedPreferences(getString(R.string.APP_PREFERENCE),Context.MODE_PRIVATE);
 
         //Register listener to shared pref and if task list changed - update MenuAdapter
-        sharedPreferences.registerOnSharedPreferenceChangeListener(new SharedPreferences.OnSharedPreferenceChangeListener() {
-            @Override
-            public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String s) {
-                Log.i("LISTENER PREF", "PREFS CHANGED with " + s);
-                tasksRecyclerView.setVisibility(View.GONE);
-                noDeadlinesText.setVisibility(View.GONE);
-                menuProgressBar.setVisibility(View.VISIBLE);
-                if(s == null || s.equals("Unathorized")){
-                    return;
-                }
-                else if((s.equals("OK"))) {
-                    menuProgressBar.setVisibility(View.GONE);
-                    noDeadlinesText.setVisibility(View.VISIBLE);
-                }
-                else{
-                    menuProgressBar.setVisibility(View.GONE);
-                    tasksRecyclerView.setVisibility(View.VISIBLE);
-                    menuAdapter.setTaskItemList(TaskItem.getTasksPref(sharedPreferences));
-                }
-                setResult(Activity.RESULT_OK);
-            }
-        });
 
         recyclerViewInit();
 
         //set the updates alarms
-        String apiToken = (String) getIntent().getSerializableExtra("apiToken");
         AlarmHandler.setUpdateAlarm(MenuActivity.this,apiToken);
 
 
@@ -138,14 +153,7 @@ public class MenuActivity extends AppCompatActivity {
         logout.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                //stop notification service
-                AlarmHandler.cancelNotificationAll(MenuActivity.this);
-                //stop update service
-                AlarmHandler.cancelUpdateAlarm(MenuActivity.this);
-                //TODO: clear local storage
-                TaskItem.clearTasksPref(sharedPreferences.edit());
                 menuViewModel.logout();
-
             }
         });
 
@@ -206,6 +214,13 @@ public class MenuActivity extends AppCompatActivity {
                     showLoadFailed(((Result.Error) logoutResult).getError());
                 }
                 if (logoutResult instanceof Result.Success) {
+                    //stop notification service
+                    AlarmHandler.cancelNotificationAll(MenuActivity.this);
+                    //stop update service
+                    AlarmHandler.cancelUpdateAlarm(MenuActivity.this);
+                    //TODO: clear local storage
+                    TaskItem.clearTasksPref(sharedPreferences.edit());
+
                     relogin();
                     //setResult(Activity.RESULT_OK);
                     finish();
@@ -225,9 +240,9 @@ public class MenuActivity extends AppCompatActivity {
     }
 
     private void relogin(){
-        SharedPreferences.Editor editor = sharedPreferences.edit();
-        editor.remove("log");
-        editor.remove("pas");
+        SharedPreferences tokSharedPrefernces = getApplicationContext().getSharedPreferences(getString(R.string.TOK_PREFERENCE),Context.MODE_PRIVATE);
+        SharedPreferences.Editor editor = tokSharedPrefernces.edit();
+        editor.clear();
         editor.apply();
         Intent loginActivity = new Intent(MenuActivity.this, LoginActivity.class);
         startActivity(loginActivity);

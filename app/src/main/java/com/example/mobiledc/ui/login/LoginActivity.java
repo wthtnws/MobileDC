@@ -26,6 +26,7 @@ import androidx.lifecycle.ViewModelProvider;
 
 import com.example.mobiledc.R;
 import com.example.mobiledc.databinding.ActivityLoginBinding;
+import com.example.mobiledc.ui.menu.MenuActivity;
 import com.example.mobiledc.ui.secondfactor.SecondFactorActivity;
 
 public class LoginActivity extends AppCompatActivity {
@@ -38,15 +39,14 @@ public class LoginActivity extends AppCompatActivity {
     protected void onStart() {
         super.onStart();
         Log.i("ON_START", "Login activity");
-        //TODO: if apitoken exist do the full autologin
-        if(sharedPreferences.contains("log")&&sharedPreferences.contains("pas"))
+        if(sharedPreferences.contains("tok"))
         {
-            //TODO:remove editing log and pas, and add saving token to second factor
-            String log = sharedPreferences.getString("log","");
-            String pas = sharedPreferences.getString("pas","");
-            Log.i("SHARED PREF",log + " " + pas);
-            loginViewModel.login(log,
-                    pas);
+            String token = sharedPreferences.getString("tok","");
+            Log.i("SHARED PREF",token);
+            Intent menuActivity = new Intent(LoginActivity.this, MenuActivity.class);
+            menuActivity.putExtra("apiToken",token);
+            startActivity(menuActivity);
+            finish();
         }
     }
 
@@ -90,7 +90,7 @@ public class LoginActivity extends AppCompatActivity {
         loginViewModel = new ViewModelProvider(this, new LoginViewModelFactory())
                 .get(LoginViewModel.class);
 
-        sharedPreferences = getApplicationContext().getSharedPreferences(getString(R.string.APP_PREFERENCE),Context.MODE_PRIVATE);
+        sharedPreferences = getApplicationContext().getSharedPreferences(getString(R.string.TOK_PREFERENCE),Context.MODE_PRIVATE);
 
         final EditText usernameEditText = binding.username;
         final EditText passwordEditText = binding.password;
@@ -131,12 +131,7 @@ public class LoginActivity extends AppCompatActivity {
                     updateUiWithUser(loginResult.getSuccess());
                     Intent secondFactor = new Intent(LoginActivity.this, SecondFactorActivity.class);
                     secondFactor.putExtra("username",loginResult.getSuccess().getUsername());
-
-                    if(autoCredentials.isChecked())
-                    {
-                        Log.i("CHECKBOX","check!");
-                        saveCreds(loginResult);
-                    }
+                    secondFactor.putExtra("saveCreds",autoCredentials.isChecked());
                     startActivity(secondFactor);
                 }
                 setResult(Activity.RESULT_OK);
@@ -186,19 +181,10 @@ public class LoginActivity extends AppCompatActivity {
         });
     }
 
-    private void saveCreds(LoginResult loginResult){
-        //TODO:remove editing log and pas, and add saving token to second factor
-        SharedPreferences.Editor editor = sharedPreferences.edit();
-        editor.putString("log",loginResult.getSuccess().getUsername());
-        editor.putString("pas", loginResult.getSuccess().getApiToken());
-        editor.apply();
-    }
-
     private void relogin(){
         //TODO:remove editing log and pas, and add saving token to second factor
         SharedPreferences.Editor editor = sharedPreferences.edit();
-        editor.remove("log");
-        editor.remove("pas");
+        editor.clear();
         editor.apply();
         Intent loginActivity = new Intent(LoginActivity.this, LoginActivity.class);
         startActivity(loginActivity);

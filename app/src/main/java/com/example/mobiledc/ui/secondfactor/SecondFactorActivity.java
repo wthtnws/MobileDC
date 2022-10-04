@@ -82,7 +82,7 @@ public class SecondFactorActivity extends AppCompatActivity {
         setContentView(secondfactorBinding.getRoot());
 
         secondFactorViewModel = new SecondFactorViewModel();
-        sharedPreferences = getApplicationContext().getSharedPreferences(getString(R.string.APP_PREFERENCE), Context.MODE_PRIVATE);
+        sharedPreferences = getApplicationContext().getSharedPreferences(getString(R.string.TOK_PREFERENCE), Context.MODE_PRIVATE);
 
         final EditText codeText = secondfactorBinding.code;
         final Button secFactorButton = secondfactorBinding.check2factor;
@@ -102,8 +102,14 @@ public class SecondFactorActivity extends AppCompatActivity {
                 if (login2Result.getSuccess() != null) {
                     updateUiWithUser(login2Result.getSuccess());
                     Intent menu = new Intent(SecondFactorActivity.this, MenuActivity.class);
-                    menu.putExtra("username",login2Result.getSuccess().getUsername());
                     menu.putExtra("apiToken", login2Result.getSuccess().getApiToken());
+
+                    if(getIntent().getBooleanExtra("saveCreds",false)){
+                        Log.i("SAVING CREDS",login2Result.getSuccess().getApiToken());
+                        SharedPreferences.Editor editor = sharedPreferences.edit();
+                        editor.putString("tok",login2Result.getSuccess().getApiToken());
+                        editor.apply();
+                    }
                     startActivity(menu);
                 }
                 setResult(Activity.RESULT_OK);
@@ -167,8 +173,7 @@ public class SecondFactorActivity extends AppCompatActivity {
     }
     private void relogin(){
         SharedPreferences.Editor editor = sharedPreferences.edit();
-        editor.remove("log");
-        editor.remove("pas");
+        editor.clear();
         editor.apply();
         Intent loginActivity = new Intent(SecondFactorActivity.this, LoginActivity.class);
         startActivity(loginActivity);

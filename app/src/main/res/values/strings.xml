@@ -14,6 +14,7 @@
     <string name="login_failed">"Login failed"</string>
     <string name="input_code">Input code</string>
     <string name="APP_PREFERENCE">App_pref</string>
+    <string name="TOK_PREFERENCE">Tok_pref</string>
     <string name="NOTIFICATION_CHANNEL">MobiledDC notification channel</string>
     <string name="deadline">deadline</string>
     <string name="in_progress">in progress</string>
