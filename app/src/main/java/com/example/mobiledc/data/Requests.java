@@ -63,6 +63,10 @@ public class Requests {
                     "    \"code\": \"" +
                     code +
                     "\"\n"+
+                    //TODO:uncomment when backend will be updated
+//                    "    \"is_mobile\": " +
+//                    "true" +
+//                    "\n"+
                     "}");
             body = RequestBody.create(mediaType, content_body);
             token = "";

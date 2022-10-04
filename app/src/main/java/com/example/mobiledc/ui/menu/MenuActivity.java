@@ -22,7 +22,6 @@ import com.example.mobiledc.R;
 import com.example.mobiledc.data.Result;
 import com.example.mobiledc.databinding.ActivityTaskmenuBinding;
 import com.example.mobiledc.notification.AlarmHandler;
-import com.example.mobiledc.notification.NotificationBroadcastReciever;
 import com.example.mobiledc.ui.login.LoginActivity;
 import com.example.mobiledc.ui.menu.recycleradapter.MenuAdapter;
 
@@ -37,14 +36,11 @@ public class MenuActivity extends AppCompatActivity {
     private RecyclerView tasksRecyclerView;
     private MenuAdapter menuAdapter;
     private SharedPreferences sharedPreferences;
-    private NotificationBroadcastReciever broadcastReceiver;
 
     @Override
     protected void onStart() {
         super.onStart();
         Log.i("ON_START", "Menu activity");
-
-        menuViewModel.reloadTasks();
     }
 
     @Override
@@ -74,6 +70,7 @@ public class MenuActivity extends AppCompatActivity {
     @Override
     protected void onDestroy() {
         super.onDestroy();
+        //TODO:unregister listener to shared pref
         Log.i("ON_DESTROY", "Menu activity");
     }
 
@@ -86,34 +83,65 @@ public class MenuActivity extends AppCompatActivity {
         taskmenuBinding = ActivityTaskmenuBinding.inflate(getLayoutInflater());
         setContentView(taskmenuBinding.getRoot());
 
-        menuViewModel = new MenuViewModel((String) getIntent().getSerializableExtra("apiToken"));
-
-        sharedPreferences = getApplicationContext().getSharedPreferences(getString(R.string.APP_PREFERENCE),Context.MODE_PRIVATE);
-
         final Button reload = taskmenuBinding.reloadtasks;
         final Button logout = taskmenuBinding.logout;
         final Button exit = taskmenuBinding.exit;
         final ProgressBar menuProgressBar = taskmenuBinding.menuProgressBar;
         final TextView noDeadlinesText = taskmenuBinding.noDeadlinesText;
 
+        menuViewModel = new MenuViewModel((String) getIntent().getSerializableExtra("apiToken"));
+
+        sharedPreferences = getApplicationContext().getSharedPreferences(getString(R.string.APP_PREFERENCE),Context.MODE_PRIVATE);
+
+        //Register listener to shared pref and if task list changed - update MenuAdapter
+        sharedPreferences.registerOnSharedPreferenceChangeListener(new SharedPreferences.OnSharedPreferenceChangeListener() {
+            @Override
+            public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String s) {
+                Log.i("LISTENER PREF", "PREFS CHANGED with " + s);
+                tasksRecyclerView.setVisibility(View.GONE);
+                noDeadlinesText.setVisibility(View.GONE);
+                menuProgressBar.setVisibility(View.VISIBLE);
+                if(s == null || s.equals("Unathorized")){
+                    return;
+                }
+                else if((s.equals("OK"))) {
+                    menuProgressBar.setVisibility(View.GONE);
+                    noDeadlinesText.setVisibility(View.VISIBLE);
+                }
+                else{
+                    menuProgressBar.setVisibility(View.GONE);
+                    tasksRecyclerView.setVisibility(View.VISIBLE);
+                    menuAdapter.setTaskItemList(TaskItem.getTasksPref(sharedPreferences));
+                }
+                setResult(Activity.RESULT_OK);
+            }
+        });
+
         recyclerViewInit();
+
+        //set the updates alarms
+        String apiToken = (String) getIntent().getSerializableExtra("apiToken");
+        AlarmHandler.setUpdateAlarm(MenuActivity.this,apiToken);
+
 
         reload.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 Toast.makeText(MenuActivity.this, "Reload button was pressed", Toast.LENGTH_SHORT).show();
-                tasksRecyclerView.setVisibility(View.GONE);
-                noDeadlinesText.setVisibility(View.GONE);
-                menuProgressBar.setVisibility(View.VISIBLE);
-                menuViewModel.reloadTasks();
+//                tasksRecyclerView.setVisibility(View.GONE);
+//                noDeadlinesText.setVisibility(View.GONE);
+//                menuProgressBar.setVisibility(View.VISIBLE);
+//                menuViewModel.reloadTasks();
             }
         });
 
         logout.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                //TODO: stop notification service
-                AlarmHandler.cancelAll(MenuActivity.this);
+                //stop notification service
+                AlarmHandler.cancelNotificationAll(MenuActivity.this);
+                //stop update service
+                AlarmHandler.cancelUpdateAlarm(MenuActivity.this);
                 //TODO: clear local storage
                 TaskItem.clearTasksPref(sharedPreferences.edit());
                 menuViewModel.logout();
@@ -124,7 +152,7 @@ public class MenuActivity extends AppCompatActivity {
         exit.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                finish();
+                finishAndRemoveTask();
             }
         });
 
@@ -138,7 +166,7 @@ public class MenuActivity extends AppCompatActivity {
                 tasksRecyclerView.setVisibility(View.VISIBLE);
 
                 //TODO: cancel alarms
-                AlarmHandler.cancelAll(MenuActivity.this);
+                AlarmHandler.cancelNotificationAll(MenuActivity.this);
                 //TODO: clear local storage
                 TaskItem.clearTasksPref(sharedPreferences.edit());
 
@@ -157,12 +185,10 @@ public class MenuActivity extends AppCompatActivity {
                     else {
                         ArrayList<TaskItem> taskItemArrayList = (ArrayList<TaskItem>) TaskItem.parseFromJSON((
                                 (Result.Success<JSONArray>) tasksResult).getData());
-                        menuAdapter.setTaskItemList(taskItemArrayList);
-                        //TODO:save tasks to local storage
+                        //save tasks to local storage
                         TaskItem.saveTasksPref(sharedPreferences.edit(),taskItemArrayList);
-                        //TODO:set the alarms
-                        AlarmHandler.setAlarms(MenuActivity.this,taskItemArrayList);
-
+                        //set the notification alarms
+                        AlarmHandler.setNotificationAlarms(MenuActivity.this);
                     }
 
                 }

@@ -7,11 +7,8 @@ import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModel;
 
-import com.example.mobiledc.R;
 import com.example.mobiledc.data.Requests;
 import com.example.mobiledc.data.Result;
-import com.example.mobiledc.ui.login.LoggedInUserView;
-import com.example.mobiledc.ui.login.LoginResult;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -73,7 +70,7 @@ public class MenuViewModel extends ViewModel {
                                 String task = tasks.getString(0);
                                 int initTime = ((int) tasks.getJSONObject(0).get("init_time"));
 
-                                //TODO: parse and handle the JSON body (maybe in Result.Success constructor)
+                                //parse and handle the JSON body (maybe in Result.Success constructor)
                                 tasksResult.postValue(new Result.Success<JSONArray>(tasks));
 
                                 Log.i("[+] Response3 tasks", tasks.toString() + "\n length = " + tasks.length());

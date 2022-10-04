@@ -46,7 +46,7 @@ public class NotificationBroadcastReciever extends BroadcastReceiver {
         int thisIcon = R.drawable.ic_stat_name;
         //TODO: check the deadline, if it has been passed, then rewrite the file
 
-
+        //TODO:handle status
         if(taskItem.getStatus().equals(context.getString(R.string.deadline))){
             thisChannel = deadlineChannel;
             thisChannelId = "DEADLINE_CHANNEL";

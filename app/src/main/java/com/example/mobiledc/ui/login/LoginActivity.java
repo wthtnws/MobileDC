@@ -7,7 +7,6 @@ import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
-import android.util.ArraySet;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.View;
@@ -27,13 +26,7 @@ import androidx.lifecycle.ViewModelProvider;
 
 import com.example.mobiledc.R;
 import com.example.mobiledc.databinding.ActivityLoginBinding;
-import com.example.mobiledc.ui.menu.MenuActivity;
 import com.example.mobiledc.ui.secondfactor.SecondFactorActivity;
-
-import java.util.Arrays;
-import java.util.Iterator;
-import java.util.LinkedHashSet;
-import java.util.Set;
 
 public class LoginActivity extends AppCompatActivity {
 
@@ -45,9 +38,10 @@ public class LoginActivity extends AppCompatActivity {
     protected void onStart() {
         super.onStart();
         Log.i("ON_START", "Login activity");
-
+        //TODO: if apitoken exist do the full autologin
         if(sharedPreferences.contains("log")&&sharedPreferences.contains("pas"))
         {
+            //TODO:remove editing log and pas, and add saving token to second factor
             String log = sharedPreferences.getString("log","");
             String pas = sharedPreferences.getString("pas","");
             Log.i("SHARED PREF",log + " " + pas);
@@ -193,6 +187,7 @@ public class LoginActivity extends AppCompatActivity {
     }
 
     private void saveCreds(LoginResult loginResult){
+        //TODO:remove editing log and pas, and add saving token to second factor
         SharedPreferences.Editor editor = sharedPreferences.edit();
         editor.putString("log",loginResult.getSuccess().getUsername());
         editor.putString("pas", loginResult.getSuccess().getApiToken());
@@ -200,6 +195,7 @@ public class LoginActivity extends AppCompatActivity {
     }
 
     private void relogin(){
+        //TODO:remove editing log and pas, and add saving token to second factor
         SharedPreferences.Editor editor = sharedPreferences.edit();
         editor.remove("log");
         editor.remove("pas");

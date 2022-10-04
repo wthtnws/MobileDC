@@ -13,10 +13,6 @@
         android:roundIcon="@mipmap/ic_launcher_run_fast_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.MobileDC">
-        <service
-            android:name=".notification.NotificationService"
-            android:enabled="true"
-            android:exported="false"></service>
 
         <receiver
             android:name=".notification.NotificationBroadcastReciever"
@@ -24,6 +20,15 @@
             android:exported="true">
             <intent-filter>
                 <action android:name= "com.example.mobiledc.notification.Notify"></action>
+            </intent-filter>
+        </receiver>
+
+        <receiver
+            android:name=".notification.UpdatePreferenceBroadcastReceiver"
+            android:enabled="true"
+            android:exported="true">
+            <intent-filter>
+                <action android:name= "com.example.mobiledc.notification.Update"></action>
             </intent-filter>
         </receiver>
 
